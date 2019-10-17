@@ -8,10 +8,6 @@ Procheck (pode fazer o download em: https://www.ebi.ac.uk/thornton-srv/software/
 
 Modulo do Perl para trabalhar com PDB (para instalar: sudo cpan install -f Bio::PDB::Structure::Atom)
 
-Modulo do Perl para trabalhar com PDB (para instalar: sudo cpan install -f Error)
-
-parsepdb (download em: http://comp.chem.nottingham.ac.uk/parsepdb/)
-
 ## Para rodar é necessário ter:
 Fasta das proteínas 
 
