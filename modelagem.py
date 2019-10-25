@@ -1,7 +1,7 @@
 # Comparative modeling by the automodel class - editado por Crhisllane para inserir o processo de otmizacao e restricoes das cadeias
 #
 # Demonstrates how to build multi-chain models, and symmetry restraints
-#
+
 from modeller import *
 from modeller.automodel import *    
 import sys

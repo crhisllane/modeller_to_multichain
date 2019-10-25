@@ -96,7 +96,7 @@ foreach my $queryTemp (@querysTemp){
         for (my $i=1; $i <= $chains; $i++){
             my $nameChain = teste::whichChain($i);
             #print ("$seuModeller python $dir/align.py $templateUC  $templateUC\_$nameChain $templateUC\.pdb $query\.fasta FASTA $query $nameChain $nameChain");
-            system ("$seuModeller python $dir/align.py $templateUC  $templateUC\_$nameChain $templateUC\.pdb $query\.fasta FASTA $query $nameChain $nameChain");
+            #system ("$seuModeller python $dir/align.py $templateUC  $templateUC\_$nameChain $templateUC\.pdb $query\.fasta FASTA $query $nameChain $nameChain");
         }
         chdir ("..");
     }
