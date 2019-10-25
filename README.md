@@ -12,3 +12,6 @@ Modulo do Perl para trabalhar com PDB (para instalar: sudo cpan install -f Bio::
 Fasta das proteínas 
 
 Tabela com nome da proteína e seu template
+
+### scripts extras
+alguns scripts disponibilizados aqui para manipular os dados de pdb foram obtidos em: http://www.canoz.com/
