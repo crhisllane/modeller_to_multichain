@@ -43,6 +43,12 @@ package criando {
     #print ">$nid\n$nseq\n";
 	close FILESEQ;
   }
+  sub PDB{
+    my ($diretorio, $pdbname) = @_;
+    system("python $diretorio/pdb_download.py temp.lst");
+    system("wget https://files.rcsb.org/download/$pdbname\.pdb1.gz");
+    system("gunzip $pdbname\.pdb1.gz");     
+  }
 
 }
 package teste {
@@ -77,12 +83,15 @@ foreach my $queryTemp (@querysTemp){
     if (@query_templine[0]!~m/^P/){
         my $query = @query_templine[0];
         my $template = @query_templine[1];
-        my $templateUC = lc @query_templine[1];
+        my $templateLC = lc @query_templine[1];
+        my $templateUC = uc @query_templine[1];
+
         print ("prot $query temp $template\n");
         criando::dir($query);
         chdir ("$query");
         criando::file($template);
-        system("python $dir/pdb_download.py temp.lst");
+        criando::PDB($dir, $templateUC);
+
 
 		while(my $seq = $seqs_in->next_seq){
 			my $id = $seq->display_id;
@@ -95,8 +104,8 @@ foreach my $queryTemp (@querysTemp){
         #########alinhamentos
         for (my $i=1; $i <= $chains; $i++){
             my $nameChain = teste::whichChain($i);
-            #print ("$seuModeller python $dir/align.py $templateUC  $templateUC\_$nameChain $templateUC\.pdb $query\.fasta FASTA $query $nameChain $nameChain");
-            #system ("$seuModeller python $dir/align.py $templateUC  $templateUC\_$nameChain $templateUC\.pdb $query\.fasta FASTA $query $nameChain $nameChain");
+            #print ("$seuModeller python $dir/align.py $templateLC  $templateLC\_$nameChain $templateLC\.pdb $query\.fasta FASTA $query $nameChain $nameChain");
+            #system ("$seuModeller python $dir/align.py $templateLC  $templateLC\_$nameChain $templateLC\.pdb $query\.fasta FASTA $query $nameChain $nameChain");
         }
         chdir ("..");
     }
