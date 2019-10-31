@@ -47,16 +47,16 @@ package criando {
     my ($diretorio, $pdbname) = @_;
     system("python $diretorio/pdb_download.py temp.lst");
     system("wget https://files.rcsb.org/download/$pdbname\.pdb1.gz");
-    system("gunzip $pdbname\.pdb1.gz");     
+    system("gunzip $pdbname\.pdb1.gz"); 
+       
   }
 
 }
-package teste {
+package work {
     sub whichChain {
         my ($ni) = @_;
         if ($ni == 1){
             return "A";
-            print ("chegou aqui");
         } elsif ($ni == 2){
             return "B";
         } elsif ($ni == 3){
@@ -103,7 +103,8 @@ foreach my $queryTemp (@querysTemp){
         
         #########alinhamentos
         for (my $i=1; $i <= $chains; $i++){
-            my $nameChain = teste::whichChain($i);
+            my $nameChain = work::whichChain($i);
+            system("sed -n \'/MODEL        $i\/,\/ENDMODEL\/p\' $templateUC\.pdb1 > $templateUC\_$nameChain.pdb"); 
             #print ("$seuModeller python $dir/align.py $templateLC  $templateLC\_$nameChain $templateLC\.pdb $query\.fasta FASTA $query $nameChain $nameChain");
             #system ("$seuModeller python $dir/align.py $templateLC  $templateLC\_$nameChain $templateLC\.pdb $query\.fasta FASTA $query $nameChain $nameChain");
         }
