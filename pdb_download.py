@@ -43,7 +43,7 @@ def pdbDownload(file_list,hostname=HOSTNAME,directory=DIRECTORY,prefix=PREFIX,
     success = True
 
     # Log into server
-    print "Connecting..."
+    print("Connecting...")
     ftp = ftplib.FTP()
     ftp.connect(hostname)
     ftp.login()

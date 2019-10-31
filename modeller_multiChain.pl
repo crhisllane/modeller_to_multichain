@@ -24,44 +24,75 @@ if ($maxProcess >= $numMaxprocessor){
 
 package criando {
   
-  sub dir {
-    my ($n1) = @_;
-    mkdir ("$n1") ;
-  }
+    sub dir {
+        my ($n1) = @_;
+        mkdir ("$n1") ;
+    }
 
-  sub file {
-    my ($n1) = @_;
-    open (TEMP, ">>temp.lst");
-    print TEMP ("$n1\n");
-    close TEMP;
-  }
+    sub file {
+        my ($n1) = @_;
+        open (TEMP, ">>temp.lst");
+        print TEMP ("$n1\n");
+        close TEMP;
+    }
 
-  sub fasta{
-    my ($nid, $nseq) = @_;
-    open (FILESEQ, ">>$nid\.fasta");
-	print FILESEQ ">$nid\n$nseq\n";
-    #print ">$nid\n$nseq\n";
-	close FILESEQ;
-  }
-  sub PDB{
-    my ($diretorio, $pdbname) = @_;
-    system("python $diretorio/pdb_download.py temp.lst");
-    system("wget https://files.rcsb.org/download/$pdbname\.pdb1.gz");
-    system("gunzip $pdbname\.pdb1.gz"); 
-       
-  }
+    sub fasta{
+        my ($nid, $nseq) = @_;
+        open (FILESEQ, ">>$nid\.fasta");
+        print FILESEQ ">$nid\n$nseq\n";
+        #print ">$nid\n$nseq\n";
+        close FILESEQ;
+    }
+    sub PDB{
+        my ($diretorio, $pdbname) = @_;
+        #system("python $diretorio/pdb_download.py temp.lst");
+        system("wget https://files.rcsb.org/download/$pdbname\.pdb1.gz");
+        system("gunzip $pdbname\.pdb1.gz"); 
+        
+    }
+    sub PDBnewA{
+        my ($numChain, $pdbname, $namChain) = @_;
+        my $next = $numChain + 1;
+        system("sed -n \'/MODEL        $numChain\/,\/MODEL        $next\/p\' $pdbname\.pdb1 > $pdbname\_$namChain.pdb");
+        system("sed -i '/^MODEL        $next/d' $pdbname\_$namChain.pdb");
+    }
+    sub PDBnewC{
+        my ($numChain, $pdbname, $namChain) = @_;
+        my $next = $numChain + 1;
+        system("sed -n \'/MODEL        $numChain\/,\/ENDMODEL\/p\' $pdbname\.pdb1 > $pdbname\_$namChain.pdb");
+    }  
 
 }
 package work {
     sub whichChain {
-        my ($ni) = @_;
+        my ($ni, $template) = @_;
         if ($ni == 1){
+            my $nameChain = "A";
+            criando::PDBnewA($ni, $template, $nameChain);
             return "A";
         } elsif ($ni == 2){
+            my $nameChain = "B";
+            criando::PDBnewA($ni, $template, $nameChain);
             return "B";
         } elsif ($ni == 3){
+            my $nameChain = "C";
+            criando::PDBnewC($ni, $template, $nameChain);
             return "C";
         }
+    }
+    sub whichNumAA {
+        my ($filename) = @_;
+        my @allRow;
+        if (open(my $fh, '<:encoding(UTF-8)', $filename)) {
+            while (my $row = <$fh>) {
+            chomp $row;
+            push(@allRow,$row);
+        }
+        } else {
+            warn "Não foi possível abrir o arquivo '$filename' $!";
+        }
+        my @IniAtom = grep {/ATOM/} @allRow; 
+        return $IniAtom[1]; 
     }
 }
 
@@ -103,8 +134,14 @@ foreach my $queryTemp (@querysTemp){
         
         #########alinhamentos
         for (my $i=1; $i <= $chains; $i++){
-            my $nameChain = work::whichChain($i);
-            system("sed -n \'/MODEL        $i\/,\/ENDMODEL\/p\' $templateUC\.pdb1 > $templateUC\_$nameChain.pdb"); 
+            my $nameChain = work::whichChain($i, $templateUC);
+            #criando::PDBnew($i, $templateUC, $nameChain);
+            my $fileName=$templateUC . "_" . $nameChain . ".pdb";
+            my $NumAA = work::whichNumAA($fileName);
+            my $integerSerial = substr $NumAA, 7, 4;
+            my $chainID = substr $NumAA, 21, 1;
+            my $resSeq = substr $NumAA, 23, 3;
+            print "\n\n\n ####Primeira Num $NumAA\n >>> $integerSerial\t$chainID\t$resSeq\n\n";
             #print ("$seuModeller python $dir/align.py $templateLC  $templateLC\_$nameChain $templateLC\.pdb $query\.fasta FASTA $query $nameChain $nameChain");
             #system ("$seuModeller python $dir/align.py $templateLC  $templateLC\_$nameChain $templateLC\.pdb $query\.fasta FASTA $query $nameChain $nameChain");
         }
