@@ -60,7 +60,55 @@ package criando {
         my ($numChain, $pdbname, $namChain) = @_;
         my $next = $numChain + 1;
         system("sed -n \'/MODEL        $numChain\/,\/ENDMODEL\/p\' $pdbname\.pdb1 > $pdbname\_$namChain.pdb");
-    }  
+    }
+    sub dividePDB{
+        my ($filename, $templateUC, $newChain) = @_;
+        print ("::::::: $filename, $templateUC, $newChain :::::::");
+        my @allRow;
+        open (FILECHAIN, "$filename");
+        while(my $row=<FILECHAIN>){
+	        chomp($row);
+	        push(@allRow,$row)
+        }    
+        my $testeChain = "WW";
+        foreach my $oneRow (@allRow){
+            if ($oneRow=~m/ATOM/ || $oneRow=~m/HETATM/){
+                my $integerSerial = substr $oneRow, 7, 4;
+                my $chainID = substr $oneRow, 21, 1;
+                my $resSeq = substr $oneRow, 23, 3;
+                if ($testeChain eq $chainID){
+
+                    print BYCHAIN "$oneRow\n";
+
+                }elsif (($testeChain eq "WW" || $testeChain ne $chainID)){
+                    if ($testeChain ne $chainID){
+                        close BYCHAIN;
+                    }
+                    $testeChain = $chainID;
+                    open (BYCHAIN, ">>$templateUC\_$newChain\_$chainID\.pdb");
+                    print BYCHAIN "$oneRow\n";
+                
+                }
+                
+            }
+        }
+        close BYCHAIN;
+
+    }
+    sub renumber{
+        my ($templateUC, $newChain, $resSeq, $dirL) = @_;
+        my @files = glob("$templateUC\_$newChain*");
+        my $lastLine;
+        my $resSeqN = $resSeq - 1;
+        print "$resSeqN";
+        foreach my $file (@files){
+            system ("$dirL/renamepdbchain.pl -infile $file -tochain $newChain");
+            #system ("mv $file\.pdb $file");
+            system ("$dirL/renumberpdbchain.pl -infile $file\.pdb -add -$resSeqN -chain $newChain");
+        }
+  
+
+    }   
 
 }
 package work {
@@ -135,13 +183,16 @@ foreach my $queryTemp (@querysTemp){
         #########alinhamentos
         for (my $i=1; $i <= $chains; $i++){
             my $nameChain = work::whichChain($i, $templateUC);
-            #criando::PDBnew($i, $templateUC, $nameChain);
             my $fileName=$templateUC . "_" . $nameChain . ".pdb";
             my $NumAA = work::whichNumAA($fileName);
             my $integerSerial = substr $NumAA, 7, 4;
             my $chainID = substr $NumAA, 21, 1;
             my $resSeq = substr $NumAA, 23, 3;
-            print "\n\n\n ####Primeira Num $NumAA\n >>> $integerSerial\t$chainID\t$resSeq\n\n";
+            print "\n\n\n ####Primeira Num $NumAA\n >>> $integerSerial\t$chainID\tmudarpara $nameChain \t$resSeq\n\n";
+            criando::dividePDB($fileName, $templateUC, $nameChain);
+            criando::renumber($templateUC, $nameChain, $resSeq, $dir);
+            #system ("$dir/renamepdbchain.pl -infile $fileName -tochain $nameChain");
+            #system ("mv $fileName.pdb $fileName");
             #print ("$seuModeller python $dir/align.py $templateLC  $templateLC\_$nameChain $templateLC\.pdb $query\.fasta FASTA $query $nameChain $nameChain");
             #system ("$seuModeller python $dir/align.py $templateLC  $templateLC\_$nameChain $templateLC\.pdb $query\.fasta FASTA $query $nameChain $nameChain");
         }
@@ -150,5 +201,6 @@ foreach my $queryTemp (@querysTemp){
     $pm->finish;
 }
 $pm->wait_all_children;
+
 
 
