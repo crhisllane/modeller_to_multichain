@@ -1,4 +1,5 @@
 # modeller_to_multichain
+EM CONSTRUÇÃO - NÃO TA FUNCIONANDO COMPLETAMENTE
 Processo completo para modelagem de proteínas com multiplas cadeias.
 
 ## Dependências: 
