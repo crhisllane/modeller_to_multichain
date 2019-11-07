@@ -96,12 +96,12 @@ package criando {
 
     }
     sub PDBrenum{
-        my ($templateUC, $newChain, $resSeq, $dirL) = @_;
+        my ($templateUC, $newChain, $resSeq, $chainID, $dirL) = @_;
         my @files = glob("$templateUC\_$newChain\_*");
         my $control;
         my $resnumb = $resSeq;
         foreach my $file (@files){                       
-            if ($file=~m/$templateUC\_$newChain\_$newChain/){
+            if ($file=~m/$templateUC\_$newChain\_$chainID/){
                 $control = "S";
                 my $resnumb1 = $resSeq - 1;
                 $resnumb = work::renumber($file, $resnumb1, $newChain, $dirL, $control);
@@ -109,7 +109,7 @@ package criando {
             } 
         }
         foreach my $file (@files){
-            if ($file!~m/$templateUC\_$newChain\_$newChain/) {
+            if ($file!~m/$templateUC\_$newChain\_$chainID/) {
                 $control = "N";
                 my $firsline = `head -1 $file`;
                 my $firstres = substr $firsline, 23, 3;
@@ -220,6 +220,7 @@ foreach my $queryTemp (@querysTemp){
 		}
         
         #########alinhamentos
+
         for (my $i=1; $i <= $chains; $i++){
             my $nameChain = work::whichChain($i, $templateUC);
             my $fileName=$templateUC . "_" . $nameChain . ".pdb";
@@ -229,7 +230,10 @@ foreach my $queryTemp (@querysTemp){
             my $resSeq = substr $NumAA, 23, 3;
             print "\n\n\n ####Primeira Num $NumAA\n >>> $integerSerial\t$chainID\tmudarpara $nameChain \t$resSeq\n\n";
             criando::dividePDB($fileName, $templateUC, $nameChain);
-            criando::PDBrenum($templateUC, $nameChain, $resSeq, $dir);
+            #PAREI AQUIIIIIIIIII
+            my @chainsComplete = glob ("$templateUC\_$nameChain\_*");
+            criando::PDBrenum($templateUC, $nameChain, $resSeq, $chainID, $dir);
+            print ("\n\n::::::::::::: ULTIMOAQUI $templateUC, $nameChain, $resSeq, $chainID, $dir :::::::::::\n\n");
             #system ("$dir/renamepdbchain.pl -infile $fileName -tochain $nameChain");
             #system ("mv $fileName.pdb $fileName");
             #print ("$seuModeller python $dir/align.py $templateLC  $templateLC\_$nameChain $templateLC\.pdb $query\.fasta FASTA $query $nameChain $nameChain");
