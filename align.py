@@ -12,7 +12,7 @@ last=sys.argv[8]
 
 first='FIRST:' +first
 last='LAST:' +last
-fileali = codquery + "_" + template + ".ali"
+fileali = codquery + "_" + template + "_" + first + ".ali"
 
 env = environ()
 aln = alignment(env)
@@ -21,6 +21,6 @@ aln.append_model(mdl, align_codes=codtemplate, atom_files=pdb)
 aln.append(file=query, alignment_format=formato, align_codes=codquery
 )
 aln.align2d()
-aln.write(file=fileali, alignment_format='PIR') 	#precisa corrigir essa parte
-aln.write(file='templatequery.ali', alignment_format='PIR') 	#precisa corrigir essa parte
+aln.write(file=fileali, alignment_format='PIR') 	
+#aln.write(file='templatequery.ali', alignment_format='PIR') 	
 #aln.write(file='templatequery.pap', alignment_format='PAP')  

@@ -43,6 +43,7 @@ package criando {
         #print ">$nid\n$nseq\n";
         close FILESEQ;
     }
+
     sub PDB{
         my ($diretorio, $pdbname) = @_;
         #system("python $diretorio/pdb_download.py temp.lst");
@@ -63,7 +64,6 @@ package criando {
     }
     sub dividePDB{
         my ($filename, $templateUC, $newChain) = @_;
-        print ("::::::: $filename, $templateUC, $newChain :::::::\n");
         my @allRow;
         open (FILECHAIN, "$filename");
         while(my $row=<FILECHAIN>){
@@ -107,7 +107,6 @@ package criando {
                 $resnumb = work::renumber($file, $resnumb1, $newChain, $dirL, $control);
                 system ("mv $file\.pdb\.pdb $file");
                 system ("rm $file\.pdb");
-                print ("\n\n:::::::PRIMEIRO resnum $resSeq e virou $resnumb :::::::\n\n");
             } 
         }
         foreach my $file (@files){
@@ -199,7 +198,6 @@ package work {
         }
         my $lastLine = `tail -1 $file\.pdb\.pdb`;
         my $resOut = substr $lastLine, 23, 3;
-        print (":::$lastLine - ANTIGO $resSeqN - NOVO $resOut:::\n");
         return $resOut;
     }
     sub testIS {
@@ -241,12 +239,26 @@ foreach my $queryTemp (@querysTemp){
         criando::file($template);
         criando::PDB($dir, $templateUC);
 
-
+        my $id;
+        my $sequence;
 		while(my $seq = $seqs_in->next_seq){
-			my $id = $seq->display_id;
-            my $sequence=$seq->seq;
+			$id = $seq->display_id;
+            $sequence=$seq->seq;
             if ($id eq $query){
                 criando::fasta($id, $sequence);
+                my $idMC = $id . "\_MC";
+                my @controlChain = ("", "A".."Z");
+                my $codeFirst;
+                my $codeLast;
+                my $QuerychainsFasta;
+                for (my $i=1; $i <= $chains; $i++){
+                    $QuerychainsFasta = $QuerychainsFasta . "$sequence\n";
+                    $codeFirst = @controlChain[1];
+                    $codeLast = @controlChain[$i];
+                    
+                }
+                criando::fasta($idMC, $QuerychainsFasta);
+                system("sed -i \'\/^\$\/d\' $idMC.fasta");
             }
 		}
         
@@ -259,19 +271,35 @@ foreach my $queryTemp (@querysTemp){
             my $integerSerial = substr $NumAA, 7, 4;
             my $chainID = substr $NumAA, 21, 1;
             my $resSeq = substr $NumAA, 23, 3;
-            print "\n\n\n ####Primeira Num $NumAA\n >>> $integerSerial\t$chainID\tmudarpara $nameChain \t$resSeq\n\n";
             criando::dividePDB($fileName, $templateUC, $nameChain);
-            #PAREI AQUIIIIIIIIII
             my @chainsComplete = glob ("$templateUC\_$nameChain\_*");
             criando::PDBrenum($templateUC, $nameChain, $resSeq, $chainID, $dir);
             criando::PDBbit($templateUC, $nameChain);
-            print ("\n\n::::::::::::: ULTIMOAQUI $templateUC, $nameChain, $resSeq, $chainID :::::::::::\n\n");
             #system ("$dir/renamepdbchain.pl -infile $fileName -tochain $nameChain");
             #system ("mv $fileName.pdb $fileName");
             #print ("$seuModeller python $dir/align.py $templateLC  $templateLC\_$nameChain $templateLC\.pdb $query\.fasta FASTA $query $nameChain $nameChain");
             #system ("$seuModeller python $dir/align.py $templateLC  $templateLC\_$nameChain $templateLC\.pdb $query\.fasta FASTA $query $nameChain $nameChain");
         }
         criando::PDBcomplete($templateUC, $dir);
+
+        #:::::::::::::::::::::: Alinhamento por cadeia ::::::::::::::::::::::
+        my @controlChain = ("", "A".."Z");
+        my $codeFirst;
+        my $codeLast;
+        my $QuerychainsFasta;
+        for (my $i=1; $i <= $chains; $i++){
+            $QuerychainsFasta = $QuerychainsFasta . "$sequence\n";
+            $codeFirst = @controlChain[1];
+            $codeLast = @controlChain[$i];
+            print ("#$seuModeller python $dir/align.py $templateUC $templateUC\_@controlChain[$i] $templateUC.pdb $query.fasta FASTA $query @controlChain[$i] @controlChain[$i]\n");
+            system ("$seuModeller python $dir/align.py $templateUC $templateUC\_@controlChain[$i] $templateUC.pdb $query.fasta FASTA $query @controlChain[$i] @controlChain[$i]");
+        }
+
+        #:::::::::::::::::::::: Alinhamento completo ::::::::::::::::::::::
+        print ("::::::::::::: $templateUC\t$query\t$codeFirst\t$codeLast :::::::::::::\n");
+
+        system ("$seuModeller python $dir/align.py $templateUC $templateUC $templateUC.pdb $query\_MC.fasta FASTA $query\_MC $codeFirst $codeLast;");
+
         chdir ("..");
     }
     $pm->finish;
