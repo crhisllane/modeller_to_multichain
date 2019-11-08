@@ -105,6 +105,8 @@ package criando {
                 $control = "S";
                 my $resnumb1 = $resSeq - 1;
                 $resnumb = work::renumber($file, $resnumb1, $newChain, $dirL, $control);
+                system ("mv $file\.pdb\.pdb $file");
+                system ("rm $file\.pdb");
                 print ("\n\n:::::::PRIMEIRO resnum $resSeq e virou $resnumb :::::::\n\n");
             } 
         }
@@ -119,12 +121,16 @@ package criando {
                     system ("$dirL/renamepdbchain.pl -infile $file -tochain $newChain");
                     system ("$dirL/renumberpdbchain.pl -infile $file\.pdb -add -$firstresOK -chain $newChain");           
                     system ("mv $file\.pdb\.pdb $file");
-                    system ("rm $file\.pdb*");
+                    system ("rm $file\.pdb");
 
                     $resnumb = work::renumber($file, $resnumb, $newChain, $dirL, $control);
+                    system ("mv $file\.pdb\.pdb $file");
+                    system ("rm $file\.pdb");
                 } else {
 
                     $resnumb = work::renumber($file, $resnumb, $newChain, $dirL, $control);
+                    system ("mv $file\.pdb\.pdb $file");
+                    system ("rm $file\.pdb");
                 }
 
             }            
@@ -132,7 +138,22 @@ package criando {
         }
   
 
-    }   
+    }
+    sub PDBbit{
+        my ($templateUC, $newChain) = @_;
+        system ("rm $templateUC\_$newChain\.pdb");
+        system ("cat $templateUC\_$newChain\_* > $templateUC\_$newChain\.pdb");
+        system ("rm $templateUC\_$newChain\_*");        
+    } 
+    sub PDBcomplete {
+        my ($templateUC, $dirL) = @_;
+        system ("cat $templateUC\_*\.pdb > $templateUC.pdb");
+        system ("rm $templateUC\_*\.pdb");
+        system ("$dirL/renumberpdbatoms.pl -infile $templateUC.pdb");
+        system ("rm $templateUC.pdb1");
+        system ("mv $templateUC.pdb\.pdb $templateUC.pdb");
+        
+    }  
 
 }
 package work {
@@ -180,6 +201,16 @@ package work {
         my $resOut = substr $lastLine, 23, 3;
         print (":::$lastLine - ANTIGO $resSeqN - NOVO $resOut:::\n");
         return $resOut;
+    }
+    sub testIS {
+        my ($integerSerial) =@_;
+        if ($integerSerial == 1){
+            return 0;
+        }else{
+            my $NewIS = $integerSerial - 1;
+            return $NewIS;
+
+        }
     }
 }
 
@@ -233,12 +264,14 @@ foreach my $queryTemp (@querysTemp){
             #PAREI AQUIIIIIIIIII
             my @chainsComplete = glob ("$templateUC\_$nameChain\_*");
             criando::PDBrenum($templateUC, $nameChain, $resSeq, $chainID, $dir);
-            print ("\n\n::::::::::::: ULTIMOAQUI $templateUC, $nameChain, $resSeq, $chainID, $dir :::::::::::\n\n");
+            criando::PDBbit($templateUC, $nameChain);
+            print ("\n\n::::::::::::: ULTIMOAQUI $templateUC, $nameChain, $resSeq, $chainID :::::::::::\n\n");
             #system ("$dir/renamepdbchain.pl -infile $fileName -tochain $nameChain");
             #system ("mv $fileName.pdb $fileName");
             #print ("$seuModeller python $dir/align.py $templateLC  $templateLC\_$nameChain $templateLC\.pdb $query\.fasta FASTA $query $nameChain $nameChain");
             #system ("$seuModeller python $dir/align.py $templateLC  $templateLC\_$nameChain $templateLC\.pdb $query\.fasta FASTA $query $nameChain $nameChain");
         }
+        criando::PDBcomplete($templateUC, $dir);
         chdir ("..");
     }
     $pm->finish;

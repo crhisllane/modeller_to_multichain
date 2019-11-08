@@ -1,19 +1,14 @@
 #!/usr/bin/perl   -wT
 
-# Copyright 2010 Emma Rath. All rights reserved.
+# Copyright 2012 Emma Rath. All rights reserved.
 # Soon this program will be released under an open source software license such as GNU General Public License or 
 # Creative Commons license for Free Software Foundation's GNU General Public License at creativecommons.org
 
-# perl -T renumberpdbatoms.pl -infile 1ZOY.pdb -add 200
+# perl -T renumberpdbatoms_from_1.pl -infile 1ZOY.pdb
 
-# This perl program runs as a as a cgi script on a web server that displays web pages.
-# This perl program also runs as a batch program on the command line.
+# This perl program runs as a batch program on the command line.
 
-# This program reads in a PDB 3D file, renumbers all the atoms in the file,
-# for lines starting with ATOM or HETATM (atom number is columns 7-11),
-# and for lines starting with CONECT (atom numbers in columns, 7-11, 12-16, 17-21, 22-26, 27-31),
-# by adding the given number to the atom number.
-# The given number can be a negative number (so that a number is subtracted from each atom number).
+# This program reads in a PDB 3D file, and renumbers all atoms from 1.
 
 use warnings;
 use strict;
@@ -60,7 +55,7 @@ if ($global->{'program_mode'} eq 'cgi-display-form') {
 
 		my $untainted_infile = untaint( $input->{'infile'} );
 		if ($untainted_infile eq '') {
-			$untainted_infile = "renumberpdbatoms";
+			$untainted_infile = "renumberpdbatoms_from_1";
 		}
 		my $output_file = $untainted_infile . ".pdb";
 		open( OUTFILE, ">$output_file") or
@@ -169,6 +164,8 @@ sub build_the_output {
 
 	my $add = $input->{'add'};
 
+	my $atom_upto = 0;
+
 	for ( my $i = 0; $i < @input_lines; $i++ ) {
 		my $line = $input_lines[$i];
 		my $l = $i + 1;
@@ -181,32 +178,33 @@ sub build_the_output {
 				if (($line_id eq 'ATOM  ') or ($line_id eq 'HETATM') or ($line_id eq 'TER   ')) {
 					my $bit1 = substr($line,0,6);
 					my $bit2 = substr($line,11);
-					my $old_atom_id = trim(substr($line,6,5));
-					my $new_atom_id = abs($old_atom_id + $add);
+					#my $old_atom_id = trim(substr($line,6,5));
+					$atom_upto += 1;
+					my $new_atom_id = abs($atom_upto);
 					my $display_atom_id = sprintf("%5s", $new_atom_id);
 					my $new_line = $bit1 . $display_atom_id . $bit2;
 					$input_lines[$i] = $new_line;
 
-				} elsif ($line_id eq 'CONECT') {
+				#} elsif ($line_id eq 'CONECT') {
 
-					my $j = 1;
-					my $start_col = 5 + (($j - 1) * 5);
-					my $end_col = 6 + ($j * 5);
-					my $end_of_line = length($line);
-					while ($end_col <= $end_of_line) {
-						my $before_bit_length = 6 + (($j - 1) * 5);
-						my $before_bit = substr( $input_lines[$i], 0, $before_bit_length);
-						my $after_bit_start_col = 6 + ($j * 5);
-						my $after_bit = substr( $input_lines[$i], $after_bit_start_col );
-						my $atom_id_start_col = 6 + (($j - 1) * 5);
-						my $old_atom_id = trim(substr( $input_lines[$i], $atom_id_start_col, 5 ));
-						my $new_atom_id = abs($old_atom_id + $add);
-						my $display_atom_id = sprintf("%5s", $new_atom_id);
-						my $new_line = $before_bit . $display_atom_id . $after_bit;
-						$input_lines[$i] = $new_line;
-						$j++;
-						$end_col = 6 + ($j * 5);
-					}
+				#	my $j = 1;
+				#	my $start_col = 5 + (($j - 1) * 5);
+				#	my $end_col = 6 + ($j * 5);
+				#	my $end_of_line = length($line);
+				#	while ($end_col <= $end_of_line) {
+				#		my $before_bit_length = 6 + (($j - 1) * 5);
+				#		my $before_bit = substr( $input_lines[$i], 0, $before_bit_length);
+				#		my $after_bit_start_col = 6 + ($j * 5);
+				#		my $after_bit = substr( $input_lines[$i], $after_bit_start_col );
+				#		my $atom_id_start_col = 6 + (($j - 1) * 5);
+				#		my $old_atom_id = trim(substr( $input_lines[$i], $atom_id_start_col, 5 ));
+				#		my $new_atom_id = abs($old_atom_id + $add);
+				#		my $display_atom_id = sprintf("%5s", $new_atom_id);
+				#		my $new_line = $before_bit . $display_atom_id . $after_bit;
+				#		$input_lines[$i] = $new_line;
+				#		$j++;
+				#		$end_col = 6 + ($j * 5);
+				#	}
 				}
 			}
 		}
@@ -556,11 +554,11 @@ sub html_footer {
 	print $debug . "<br>\n";
 
 	print "<br><br>\n";
-	print "<b>SOURCE CODE :</b> <a href='renumberpdbatoms_pl.txt'>renumberpdbatoms_pl.txt</a><br>\n";
+	print "<b>SOURCE CODE :</b> <a href='renumberpdbatoms_from_1_pl.txt'>renumberpdbatoms_from_1_pl.txt</a><br>\n";
 
 	print "<br><br>\n";
 	print "<b>COPYRIGHT :</b><br>\n";
-	print "Copyright &copy; 2010 Emma Rath. All rights reserved.<br>\n";
+	print "Copyright &copy; 2012 Emma Rath. All rights reserved.<br>\n";
 	print "Soon this program will be released under an open source software license such as GNU General Public License or<br>\n";
 	print "Creative Commons license for Free Software Foundation's GNU General Public License at creativecommons.org<br>\n";
 
@@ -672,7 +670,7 @@ sub output_command_line_help {
 
 	$command_line_help_text .= "Here are some examples of calling this program in command line mode :\n";
 	$command_line_help_text .= "\n";
-	$command_line_help_text .= "          perl -T renumberpdbatoms.pl -infile 1ZOY.pdb -add 200\n";
+	$command_line_help_text .= "          perl -T renumberpdbatoms_from_1.pl -infile 1ZOY.pdb\n";
 	$command_line_help_text .= "\n";
 	$command_line_help_text .= "This program reads in a PDB 3D file, renumbers all the atoms in the file,\n";
 	$command_line_help_text .= "for lines starting with ATOM or HETATM (atom number is columns 7-11),\n";
