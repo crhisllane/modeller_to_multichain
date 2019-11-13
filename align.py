@@ -10,9 +10,10 @@ codquery=sys.argv[6] 				#nome da query. ex:LbrM.01.0300
 first=sys.argv[7]
 last=sys.argv[8]
 
+fileali = codquery + "_" + template + "_" + first + "_" + last + ".ali"
+
 first='FIRST:' +first
 last='LAST:' +last
-fileali = codquery + "_" + template + "_" + first + ".ali"
 
 env = environ()
 aln = alignment(env)
